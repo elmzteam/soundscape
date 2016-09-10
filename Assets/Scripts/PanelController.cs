@@ -69,7 +69,7 @@ public class PanelController : MonoBehaviour {
 
 		// Reparent the active cube so it's part of the ControllerPivot object. That will
 		// make it move with the controller.
-		selectedObject.transform.SetParent(controllerPivot.transform, true);
+		//selectedObject.transform.SetParent(controllerPivot.transform, true);
 	}
 
 	private void EndDragging() {

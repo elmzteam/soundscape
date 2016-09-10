@@ -5,6 +5,7 @@ using System.Collections;
 public class ControllerMainManager : MonoBehaviour {
 	public GameObject controllerPivot;
 	public GameObject messageCanvas;
+	public GameObject carousel;
 	public Text messageText;
 
 	public Material cubeInactiveMaterial;
@@ -18,6 +19,7 @@ public class ControllerMainManager : MonoBehaviour {
 
 	// True if we are dragging the currently selected GameObject.
 	private bool dragging;
+	private float previousOrientation;
 
 	void Awake() {
 	}
@@ -37,7 +39,12 @@ public class ControllerMainManager : MonoBehaviour {
 		if (dragging) {
 			if (GvrController.TouchUp) {
 				EndDragging();
+
 			}
+			float angleDiff = previousOrientation - GvrController.Orientation.eulerAngles.y;
+			carousel.GetComponent<Carousel> ().angleOffset -= angleDiff;
+			Debug.Log (angleDiff);
+			previousOrientation = GvrController.Orientation.eulerAngles.y;
 		} else {
 			RaycastHit hitInfo;
 			Vector3 rayDirection = GvrController.Orientation * Vector3.forward;
@@ -48,8 +55,12 @@ public class ControllerMainManager : MonoBehaviour {
 			} else {
 				SetSelectedObject(null);
 			}
-			if (GvrController.TouchDown && selectedObject != null) {
+			if (GvrController.TouchDown) {
+				previousOrientation = GvrController.Orientation.eulerAngles.y;
 				StartDragging();
+				if (selectedObject != null) {
+					//something
+				}
 				StartCoroutine(StreamAudio(selectedObject, "https://api.soundcloud.com/tracks/280702753/stream?client_id=c83cb321de3b21b1ca4435fb5913a3c2&format=json"));
 			}
 		}
@@ -65,29 +76,29 @@ public class ControllerMainManager : MonoBehaviour {
 
 	private void SetSelectedObject(GameObject obj) {
 		if (null != selectedObject) {
-			selectedObject.GetComponent<Renderer>().material = cubeInactiveMaterial;
+			//selectedObject.GetComponent<Renderer>().material = cubeInactiveMaterial;
 		}
 		if (null != obj) {
-			obj.GetComponent<Renderer>().material = cubeHoverMaterial;
+			//obj.GetComponent<Renderer>().material = cubeHoverMaterial;
 		}
 		selectedObject = obj;
 	}
 
 	private void StartDragging() {
 		dragging = true;
-		selectedObject.GetComponent<Renderer>().material = cubeActiveMaterial;
+		//selectedObject.GetComponent<Renderer>().material = cubeActiveMaterial;
 
 		// Reparent the active cube so it's part of the ControllerPivot object. That will
 		// make it move with the controller.
-		selectedObject.transform.SetParent(controllerPivot.transform, true);
+		//selectedObject.transform.SetParent(controllerPivot.transform, true);
 	}
 
 	private void EndDragging() {
 		dragging = false;
-		selectedObject.GetComponent<Renderer>().material = cubeHoverMaterial;
+		//selectedObject.GetComponent<Renderer>().material = cubeHoverMaterial;
 
 		// Stop dragging the cube along.
-		selectedObject.transform.SetParent(null, true);
+		//selectedObject.transform.SetParent(null, true);
 	}
 
 	private void UpdateStatusMessage() {
