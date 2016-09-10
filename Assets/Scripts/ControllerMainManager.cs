@@ -50,7 +50,7 @@ public class ControllerMainManager : MonoBehaviour {
 			}
 			if (GvrController.TouchDown && selectedObject != null) {
 				StartDragging();
-				StartCoroutine(StreamAudio(selectedObject, "https://api.soundcloud.com/tracks/280702753/stream?client_id=c83cb321de3b21b1ca4435fb5913a3c2&format=json"));
+				StartCoroutine(StreamAudio(selectedObject, "https://api.soundcloud.com/tracks/16696379/stream?client_id=c83cb321de3b21b1ca4435fb5913a3c2&format=json"));
 			}
 		}
 	}
