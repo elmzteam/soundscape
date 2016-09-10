@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class ControllerMainManager : MonoBehaviour {
 	public GameObject controllerPivot;
@@ -49,8 +50,17 @@ public class ControllerMainManager : MonoBehaviour {
 			}
 			if (GvrController.TouchDown && selectedObject != null) {
 				StartDragging();
+				StartCoroutine(StreamAudio(selectedObject, "https://api.soundcloud.com/tracks/280702753/stream?client_id=c83cb321de3b21b1ca4435fb5913a3c2&format=json"));
 			}
 		}
+	}
+
+	IEnumerator StreamAudio(GameObject obj, string url) {
+		WWW www = new WWW(url);
+		yield return www;
+		GvrAudioSource gvrAudio = obj.GetComponent<GvrAudioSource>();
+		gvrAudio.clip = www.GetAudioClip(true, true, AudioType.MPEG);
+		gvrAudio.Play();
 	}
 
 	private void SetSelectedObject(GameObject obj) {
