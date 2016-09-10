@@ -60,8 +60,8 @@ public class ControllerMainManager : MonoBehaviour {
 				StartDragging();
 				if (selectedObject != null) {
 					//something
+					StartCoroutine(StreamAudio(selectedObject, "https://api.soundcloud.com/tracks/280702753/stream?client_id=c83cb321de3b21b1ca4435fb5913a3c2&format=json"));
 				}
-				StartCoroutine(StreamAudio(selectedObject, "https://api.soundcloud.com/tracks/280702753/stream?client_id=c83cb321de3b21b1ca4435fb5913a3c2&format=json"));
 			}
 		}
 	}
@@ -69,9 +69,13 @@ public class ControllerMainManager : MonoBehaviour {
 	IEnumerator StreamAudio(GameObject obj, string url) {
 		WWW www = new WWW(url);
 		yield return www;
-		GvrAudioSource gvrAudio = obj.GetComponent<GvrAudioSource>();
-		gvrAudio.clip = www.GetAudioClip(true, true, AudioType.MPEG);
-		gvrAudio.Play();
+		if (string.IsNullOrEmpty (www.error)) {
+			GvrAudioSource gvrAudio = obj.GetComponent<GvrAudioSource> ();
+			gvrAudio.clip = www.GetAudioClip (true, true, AudioType.UNKNOWN);
+			gvrAudio.Play ();
+		} else {
+			Debug.LogError ("Could not fetch clip");
+		}
 	}
 
 	private void SetSelectedObject(GameObject obj) {
