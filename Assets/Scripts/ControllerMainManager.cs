@@ -12,6 +12,8 @@ public class ControllerMainManager : MonoBehaviour {
 	public Material cubeHoverMaterial;
 	public Material cubeActiveMaterial;
 
+	public float friction = 0.07f;
+
 	private Renderer controllerCursorRenderer;
 
 	// Currently selected GameObject.
@@ -20,6 +22,8 @@ public class ControllerMainManager : MonoBehaviour {
 	// True if we are dragging the currently selected GameObject.
 	private bool dragging;
 	private float previousOrientation;
+
+	private float drift;
 
 	void Awake() {
 	}
@@ -39,13 +43,25 @@ public class ControllerMainManager : MonoBehaviour {
 		if (dragging) {
 			if (GvrController.TouchUp) {
 				EndDragging();
-
 			}
-			float angleDiff = previousOrientation - GvrController.Orientation.eulerAngles.y;
+			float curr = GvrController.Orientation.eulerAngles.y;
+			while (curr > 360) {
+				curr -= 360;
+			}
+			while (curr < 0) {
+				curr += 360;
+			}
+			float angleDiff = previousOrientation - curr;
 			carousel.GetComponent<Carousel> ().angleOffset -= angleDiff;
-			//Debug.Log (angleDiff);
-			previousOrientation = GvrController.Orientation.eulerAngles.y;
+			previousOrientation = curr;
+
+			drift = Mathf.Clamp(angleDiff/Time.deltaTime,-360,360);
 		} else {
+			carousel.GetComponent<Carousel> ().angleOffset -= drift * Time.deltaTime;
+			drift = drift * (1 - friction);
+			if (Mathf.Abs (drift) < 0.05) {
+				drift = 0;
+			}
 			RaycastHit hitInfo;
 			Vector3 rayDirection = GvrController.Orientation * Vector3.forward;
 			if (Physics.Raycast(Vector3.zero, rayDirection, out hitInfo)) {
@@ -57,6 +73,7 @@ public class ControllerMainManager : MonoBehaviour {
 			}
 			if (GvrController.TouchDown) {
 				previousOrientation = GvrController.Orientation.eulerAngles.y;
+				drift = 0;
 				StartDragging();
 				if (selectedObject != null && selectedObject.tag == "Panel") {
 					//something
