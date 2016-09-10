@@ -75,9 +75,11 @@ public class ControllerMainManager : MonoBehaviour {
 				previousOrientation = GvrController.Orientation.eulerAngles.y;
 				drift = 0;
 				StartDragging();
+			}
+			if (GvrController.ClickButtonDown) {
 				if (selectedObject != null && selectedObject.tag == "Panel") {
 					//something
-					StartCoroutine(StreamAudio(selectedObject, selectedObject.GetComponent<Panel>().stream + "?client_id=c83cb321de3b21b1ca4435fb5913a3c2&format=json"));
+					StartCoroutine (StreamAudio (selectedObject, selectedObject.GetComponent<Panel> ().stream + "?client_id=c83cb321de3b21b1ca4435fb5913a3c2&format=json"));
 				}
 			}
 		}
