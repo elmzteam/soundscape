@@ -12,6 +12,8 @@ public class ControllerMainManager : MonoBehaviour {
 	public Material cubeHoverMaterial;
 	public Material cubeActiveMaterial;
 
+	public float friction = 0.07f;
+
 	private Renderer controllerCursorRenderer;
 
 	// Currently selected GameObject.
@@ -20,6 +22,8 @@ public class ControllerMainManager : MonoBehaviour {
 	// True if we are dragging the currently selected GameObject.
 	private bool dragging;
 	private float previousOrientation;
+
+	private float drift;
 
 	void Awake() {
 	}
@@ -39,13 +43,26 @@ public class ControllerMainManager : MonoBehaviour {
 		if (dragging) {
 			if (GvrController.TouchUp) {
 				EndDragging();
-
 			}
-			float angleDiff = previousOrientation - GvrController.Orientation.eulerAngles.y;
+			float curr = GvrController.Orientation.eulerAngles.y;
+			while (curr > 360) {
+				curr -= 360;
+			}
+			while (curr < 0) {
+				curr += 360;
+			}
+			float angleDiff = previousOrientation - curr;
 			carousel.GetComponent<Carousel> ().angleOffset -= angleDiff;
-			Debug.Log (angleDiff);
-			previousOrientation = GvrController.Orientation.eulerAngles.y;
+			previousOrientation = curr;
+
+			drift = Mathf.Clamp(angleDiff/Time.deltaTime,-360,360);
+
 		} else {
+			carousel.GetComponent<Carousel> ().angleOffset -= drift * Time.deltaTime;
+			drift = drift * (1 - friction);
+			if (Mathf.Abs (drift) < 0.05) {
+				drift = 0;
+			}
 			RaycastHit hitInfo;
 			Vector3 rayDirection = GvrController.Orientation * Vector3.forward;
 			if (Physics.Raycast(Vector3.zero, rayDirection, out hitInfo)) {
@@ -57,10 +74,11 @@ public class ControllerMainManager : MonoBehaviour {
 			}
 			if (GvrController.TouchDown) {
 				previousOrientation = GvrController.Orientation.eulerAngles.y;
+				drift = 0;
 				StartDragging();
 				if (selectedObject != null) {
 					//something
-					StartCoroutine(StreamAudio(selectedObject, "https://api.soundcloud.com/tracks/280702753/stream?client_id=c83cb321de3b21b1ca4435fb5913a3c2&format=json"));
+					//StartCoroutine(StreamAudio(selectedObject, "http://localhost:1337/static/test1.ogg"));
 				}
 			}
 		}
@@ -71,7 +89,8 @@ public class ControllerMainManager : MonoBehaviour {
 		yield return www;
 		if (string.IsNullOrEmpty (www.error)) {
 			GvrAudioSource gvrAudio = obj.GetComponent<GvrAudioSource> ();
-			gvrAudio.clip = www.GetAudioClip (true, true, AudioType.UNKNOWN);
+			//gvrAudio.clip = www.GetAudioClip (true, true, AudioType.MPEG);
+			gvrAudio.clip = www.audioClip;
 			gvrAudio.Play ();
 		} else {
 			Debug.LogError ("Could not fetch clip");
