@@ -43,7 +43,7 @@ public class ControllerMainManager : MonoBehaviour {
 			}
 			float angleDiff = previousOrientation - GvrController.Orientation.eulerAngles.y;
 			carousel.GetComponent<Carousel> ().angleOffset -= angleDiff;
-			Debug.Log (angleDiff);
+			//Debug.Log (angleDiff);
 			previousOrientation = GvrController.Orientation.eulerAngles.y;
 		} else {
 			RaycastHit hitInfo;
@@ -58,9 +58,9 @@ public class ControllerMainManager : MonoBehaviour {
 			if (GvrController.TouchDown) {
 				previousOrientation = GvrController.Orientation.eulerAngles.y;
 				StartDragging();
-				if (selectedObject != null) {
+				if (selectedObject != null && selectedObject.tag == "Panel") {
 					//something
-					StartCoroutine(StreamAudio(selectedObject, "https://api.soundcloud.com/tracks/280702753/stream?client_id=c83cb321de3b21b1ca4435fb5913a3c2&format=json"));
+					StartCoroutine(StreamAudio(selectedObject, selectedObject.GetComponent<Panel>().stream + "?client_id=c83cb321de3b21b1ca4435fb5913a3c2&format=json"));
 				}
 			}
 		}
@@ -71,10 +71,13 @@ public class ControllerMainManager : MonoBehaviour {
 		yield return www;
 		if (string.IsNullOrEmpty (www.error)) {
 			GvrAudioSource gvrAudio = obj.GetComponent<GvrAudioSource> ();
-			gvrAudio.clip = www.GetAudioClip (true, true, AudioType.UNKNOWN);
+			gvrAudio.clip = www.GetAudioClip (true, true, AudioType.MPEG);
+			carousel.GetComponent<Carousel>().stopSongs ();
 			gvrAudio.Play ();
+			obj.GetComponent<Panel> ().showPointer ();
 		} else {
 			Debug.LogError ("Could not fetch clip");
+			Debug.LogError (www.error);
 		}
 	}
 
