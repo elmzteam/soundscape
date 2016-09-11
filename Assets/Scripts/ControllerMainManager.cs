@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 
 public class ControllerMainManager : MonoBehaviour {
 	public GameObject controllerPivot;
@@ -24,6 +26,8 @@ public class ControllerMainManager : MonoBehaviour {
 	private Vector3 previousOrientation;
 
 	private float drift;
+
+	private bool recording;
 
 	void Awake() {
 	}
@@ -108,6 +112,28 @@ public class ControllerMainManager : MonoBehaviour {
 				StartCoroutine(StreamAudio(selectedObject, selectedObject.GetComponent<Panel>().stream + "?client_id=c83cb321de3b21b1ca4435fb5913a3c2&format=json"));
 			}
 		}
+
+		if (GvrController.AppButtonDown) {
+			AudioSource aud = GetComponent<AudioSource>();
+			Debug.Log ("Recording");
+			aud.clip = Microphone.Start("Built-in Microphone", true, 10, 44100);
+			recording = true;
+		}
+
+		if (recording) {
+			if (GvrController.AppButtonUp) {
+				recording = false;
+				Debug.Log ("Stop recording");
+				Microphone.End ("Built-in Microphone");
+				AudioSource aud = GetComponent<AudioSource>();
+				Debug.Log ("Saving");
+				SavWav.Save ("record", aud.clip); // Save location is Path.Combine(Application.persistentDataPath, "record")
+				//Debug.Log ("Playing");
+				//aud.Play();
+				StartCoroutine (SpeechToText ("record.wav"));
+			}
+		}
+
 	}
 
 	IEnumerator StreamAudio(GameObject obj, string url) {
@@ -120,6 +146,26 @@ public class ControllerMainManager : MonoBehaviour {
 			gvrAudio.Play ();
 		} else {
 			Debug.LogError ("Could not fetch clip");
+			Debug.LogError (www.error);
+		}
+	}
+
+	IEnumerator SpeechToText(string filename) {
+		Debug.Log("Sending to Speech to Text");
+		//form.AddBinaryData ("recording", File.ReadAllBytes(Path.Combine(Application.persistentDataPath, filename)));
+		Dictionary<string, string> postHeader = new Dictionary<string, string> ();
+		postHeader.Add ("Content-Type", "audio/wav");
+		postHeader.Add ("Transfer-Encoding", "chunked");
+		postHeader.Add("Authorization", "Basic " + System.Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes("bb27f84b-d711-44ec-bb6e-b03e78afa819:UzCgO5m02JLL")));
+		WWW www = new WWW ("https://stream.watsonplatform.net/speech-to-text/api/v1/recognize?continuous=true", File.ReadAllBytes(Path.Combine(Application.persistentDataPath, filename)), postHeader);
+		yield return www;
+		Debug.Log ("Returned from Speech to Text");
+		if (string.IsNullOrEmpty (www.error)) {
+			Debug.Log (www.text);
+			SpeechTextData data = JsonUtility.FromJson<SpeechTextData>(www.text);
+			Debug.Log (data.results[0].alternatives [0].transcript);
+		} else {
+			Debug.LogError ("Could not speech to text");
 			Debug.LogError (www.error);
 		}
 	}
