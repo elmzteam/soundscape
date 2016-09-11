@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class Carousel : MonoBehaviour {
 
@@ -22,14 +23,36 @@ public class Carousel : MonoBehaviour {
 		if (resetCenterRotation) {
 			transform.rotation = Quaternion.identity;
 		}
-		StartCoroutine(PopulateCarousel ());
+		StartCoroutine (PopulateCarousel ("246771395"));
 	}
 
-	IEnumerator PopulateCarousel () {
-		string url = "http://69.164.214.207:1337/search/16696379?num=14";
+	public void LoadView(string id) {
+		foreach (GameObject panel in carouselObjects) {
+			panel.GetComponent<Panel> ().FadeOut();
+		}
+		StartCoroutine (DelayedCarousel (id));
+	}
+
+	private IEnumerator DelayedCarousel(string id) {
+		yield return new WaitForSeconds(1.1f);
+		yield return PopulateCarousel (id);
+	}
+
+	IEnumerator PopulateCarousel (string id) {
+		if (carouselObjects != null) {
+			foreach (GameObject panel in carouselObjects) {
+				Destroy (panel);
+			}
+			carouselObjects = null;
+			unlocked = false;
+		}
+
+		string url = "http://69.164.214.207:1337/search/"+id+"?num=14";
 		WWW www = new WWW(url);
+		Debug.Log (url);
 		yield return www;
 		TrackData data = JsonUtility.FromJson<TrackData>(www.text);
+		Debug.Log (www.text);
 		if (data.data.Length == 0) {
 			Debug.Log ("No data!");
 		}
@@ -38,8 +61,13 @@ public class Carousel : MonoBehaviour {
 			GameObject panel = Instantiate (panelPrefab);
 			panel.GetComponent<Panel> ().URL = data.data [i].artwork_url;
 			panel.GetComponent<Panel> ().stream = data.data [i].stream_url;
+			panel.GetComponent<Transform> ().GetChild (0).GetChild (1).GetComponent<Text> ().text = data.data [i].title;
 			panel.GetComponent<Panel> ().Load ();
 			panel.GetComponent<Transform> ().parent = GetComponent<Transform> ();
+			panel.GetComponent<Transform> ().position = GetComponent<Transform> ().position;
+			if (i == 0) {
+				panel.transform.GetChild (0).gameObject.SetActive (true);
+			}
 			carouselObjects [i] = panel;
 		}
 		unlocked = true;

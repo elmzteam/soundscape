@@ -18,6 +18,7 @@ public class ControllerMainManager : MonoBehaviour {
 
 	// Currently selected GameObject.
 	private GameObject selectedObject;
+	private GameObject downed;
 
 	// True if we are dragging the currently selected GameObject.
 	private bool dragging;
@@ -44,10 +45,20 @@ public class ControllerMainManager : MonoBehaviour {
 			if (GvrController.TouchUp) {
 				if (selectedObject) {
 					Debug.Log (selectedObject.GetComponent<Transform> ().parent.position.y-selectedObject.GetComponent<Transform> ().position.y);
-					if (selectedObject.GetComponent<Transform> ().parent.position.y-selectedObject.GetComponent<Transform> ().position.y > 2) {
-						selectedObject.GetComponent<Panel> ().LerpToY (selectedObject.GetComponent<Transform> ().parent.position.y-4);
+					if (selectedObject.GetComponent<Transform> ().parent.position.y - selectedObject.GetComponent<Transform> ().position.y > 2) {
+						selectedObject.GetComponent<Panel> ().LerpToY (selectedObject.GetComponent<Transform> ().parent.position.y - 4);
+						selectedObject.GetComponent<Panel> ().showTitle ();
+						if (downed != null) {
+							downed.GetComponent<Panel> ().LerpToY (selectedObject.GetComponent<Transform> ().parent.position.y);
+							downed.GetComponent<Panel> ().hideTitle ();
+						}
+						downed = selectedObject;
+					} else if (selectedObject.GetComponent<Transform> ().position.y - selectedObject.GetComponent<Transform> ().parent.position.y > 4) {
+						selectedObject.GetComponent<Panel>().FadeOut ();
+						carousel.GetComponent<Carousel>().LoadView("217682643");
 					} else {
 						selectedObject.GetComponent<Panel> ().LerpToY (selectedObject.GetComponent<Transform> ().parent.position.y);
+						selectedObject.GetComponent<Panel> ().hideTitle ();
 					}
 				}
 				EndDragging();
@@ -76,6 +87,10 @@ public class ControllerMainManager : MonoBehaviour {
 				float newHeight =  Mathf.Tan (hisAngle - angleDiff) * horizDiff;
 				if (newHeight < theirs.parent.position.y-4) {
 					newHeight = theirs.parent.position.y-4;
+				}
+				float diff = newHeight - theirs.parent.position.y - 4;
+				if (diff > 0) {
+					theirs.localScale = new Vector3 (6 + diff, 6 + diff, 1);
 				}
 				theirs.position = new Vector3 (theirs.position.x, newHeight, theirs.position.z);
 			}
