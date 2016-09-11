@@ -10,6 +10,7 @@ public class ControllerMainManager : MonoBehaviour {
 	public GameObject carousel;
 	public GameObject camera;
 	public Text messageText;
+	public GameObject mic;  
 
 	public Material cubeInactiveMaterial;
 	public Material cubeHoverMaterial;
@@ -162,6 +163,7 @@ public class ControllerMainManager : MonoBehaviour {
 		}
 
 		if (GvrController.AppButtonDown) {
+			mic.SetActive (true);
 			AudioSource aud = GetComponent<AudioSource>();
 			Debug.Log ("Recording");
 			aud.clip = Microphone.Start("Built-in Microphone", true, 10, 44100);
@@ -170,6 +172,7 @@ public class ControllerMainManager : MonoBehaviour {
 
 		if (recording) {
 			if (GvrController.AppButtonUp) {
+				mic.SetActive (false);
 				recording = false;
 				Debug.Log ("Stop recording");
 				Microphone.End ("Built-in Microphone");
