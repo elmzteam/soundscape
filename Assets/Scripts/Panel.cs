@@ -4,6 +4,15 @@ using System.Collections;
 public class Panel : MonoBehaviour {
 
 	public string URL;
+
+	public float lerpSpeed;
+	public AnimationCurve animation;
+	public bool amLerping = false;
+
+	private float dest;
+	private float startTime;
+	private float startLoc;
+
 	public string stream = "not_initialized";
 	public GameObject pointerPrefab;
 
@@ -40,9 +49,25 @@ public class Panel : MonoBehaviour {
 		}
 	}
 
+	public void LerpToY(float newY) {
+		startLoc = GetComponent<Transform> ().position.y;
+		amLerping = true;
+		dest = newY;
+		startTime = Time.time;
+	}
+
 	// Update is called once per frame
 	void Update () {
-	
+		if (amLerping) {
+			float time = (Time.time - startTime) / lerpSpeed;
+			float range = animation.Evaluate (time);
+			float val = startLoc + (dest - startLoc) * range;
+			Transform me = GetComponent<Transform> ();
+			me.position = new Vector3 (me.position.x, val, me.position.z);
+			if ((Time.time - startTime) > lerpSpeed) {
+				amLerping = false;
+			}
+		}
 	}
 
 	public void showPointer() {
