@@ -21,7 +21,7 @@ public class ControllerMainManager : MonoBehaviour {
 
 	// True if we are dragging the currently selected GameObject.
 	private bool dragging;
-	private float previousOrientation;
+	private Vector3 previousOrientation;
 
 	private float drift;
 
@@ -42,6 +42,14 @@ public class ControllerMainManager : MonoBehaviour {
 
 		if (dragging) {
 			if (GvrController.TouchUp) {
+				if (selectedObject) {
+					Debug.Log (selectedObject.GetComponent<Transform> ().parent.position.y-selectedObject.GetComponent<Transform> ().position.y);
+					if (selectedObject.GetComponent<Transform> ().parent.position.y-selectedObject.GetComponent<Transform> ().position.y > 2) {
+						selectedObject.GetComponent<Panel> ().LerpToY (selectedObject.GetComponent<Transform> ().parent.position.y-4);
+					} else {
+						selectedObject.GetComponent<Panel> ().LerpToY (selectedObject.GetComponent<Transform> ().parent.position.y);
+					}
+				}
 				EndDragging();
 			}
 			float curr = GvrController.Orientation.eulerAngles.y;
@@ -51,11 +59,27 @@ public class ControllerMainManager : MonoBehaviour {
 			while (curr < 0) {
 				curr += 360;
 			}
-			float angleDiff = previousOrientation - curr;
+			float angleDiff = previousOrientation.y - curr;
 			carousel.GetComponent<Carousel> ().angleOffset -= angleDiff;
-			previousOrientation = curr;
 
 			drift = Mathf.Clamp(angleDiff/Time.deltaTime,-360,360);
+
+			if (selectedObject != null) {
+				Transform mine = GetComponent<Transform> ();
+				Transform theirs = selectedObject.GetComponent<Transform> ();
+				float xDiff = mine.position.x - theirs.position.x;
+				float zDiff = mine.position.z - theirs.position.z;
+
+				float horizDiff = Mathf.Sqrt (xDiff * xDiff + zDiff * zDiff);
+				angleDiff = (GvrController.Orientation.eulerAngles.x - previousOrientation.x)/180*Mathf.PI;
+				float hisAngle = Mathf.Atan2 (theirs.position.y, horizDiff);
+				float newHeight =  Mathf.Tan (hisAngle - angleDiff) * horizDiff;
+				if (newHeight < theirs.parent.position.y-4) {
+					newHeight = theirs.parent.position.y-4;
+				}
+				theirs.position = new Vector3 (theirs.position.x, newHeight, theirs.position.z);
+			}
+			previousOrientation = GvrController.Orientation.eulerAngles;
 
 		} else {
 			carousel.GetComponent<Carousel> ().angleOffset -= drift * Time.deltaTime;
@@ -66,18 +90,18 @@ public class ControllerMainManager : MonoBehaviour {
 			RaycastHit hitInfo;
 			Vector3 rayDirection = GvrController.Orientation * Vector3.forward;
 			if (Physics.Raycast(Vector3.zero, rayDirection, out hitInfo)) {
-				if (hitInfo.collider && hitInfo.collider.gameObject) {
+				if (hitInfo.collider && hitInfo.collider.gameObject && hitInfo.collider.gameObject.GetComponent<Panel>()) {
 					SetSelectedObject(hitInfo.collider.gameObject);
 				}
 			} else {
 				SetSelectedObject(null);
 			}
 			if (GvrController.TouchDown) {
-				previousOrientation = GvrController.Orientation.eulerAngles.y;
+				previousOrientation = GvrController.Orientation.eulerAngles;
 				drift = 0;
 				StartDragging();
 				if (selectedObject != null) {
-					//something
+					selectedObject.GetComponent<Panel> ().amLerping = false;
 					//StartCoroutine(StreamAudio(selectedObject, "http://localhost:1337/static/test1.ogg"));
 				}
 			}

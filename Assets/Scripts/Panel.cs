@@ -4,6 +4,13 @@ using System.Collections;
 public class Panel : MonoBehaviour {
 
 	public string URL;
+	public float lerpSpeed;
+	public AnimationCurve animation;
+	public bool amLerping = false;
+
+	private float dest;
+	private float startTime;
+	private float startLoc;
 	// Use this for initialization
 	void Awake() {
 
@@ -18,18 +25,33 @@ public class Panel : MonoBehaviour {
 
 	IEnumerator FetchImage() {
 		GetComponent<Renderer>().material.mainTexture = new Texture2D(4, 4, TextureFormat.DXT1, false);
-		while (true) {
-			WWW www = new WWW(URL);
-			yield return www;
-			Renderer renderer = GetComponent<Renderer> ();
-			if (string.IsNullOrEmpty(www.error)) {
-				renderer.material.mainTexture = www.texture;
-			}
+		Debug.Log (URL);
+		WWW www = new WWW(URL);
+		yield return www;
+		Renderer renderer = GetComponent<Renderer> ();
+		if (string.IsNullOrEmpty(www.error)) {
+			renderer.material.mainTexture = www.texture;
 		}
+	}
+
+	public void LerpToY(float newY) {
+		startLoc = GetComponent<Transform> ().position.y;
+		amLerping = true;
+		dest = newY;
+		startTime = Time.time;
 	}
 
 	// Update is called once per frame
 	void Update () {
-	
+		if (amLerping) {
+			float time = (Time.time - startTime) / lerpSpeed;
+			float range = animation.Evaluate (time);
+			float val = startLoc + (dest - startLoc) * range;
+			Transform me = GetComponent<Transform> ();
+			me.position = new Vector3 (me.position.x, val, me.position.z);
+			if ((Time.time - startTime) > lerpSpeed) {
+				amLerping = false;
+			}
+		}
 	}
 }

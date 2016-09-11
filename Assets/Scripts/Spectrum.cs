@@ -22,11 +22,11 @@ public class Spectrum : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		float[] spectrum = AudioListener.GetSpectrumData (1024, 0, FFTWindow.Hamming);
+		/*float[] spectrum = AudioListener.GetSpectrumData (1024, 0, FFTWindow.Hamming);
 		for (int i = 0; i < numberOfObjects; i++) {
 			Vector3 scale = spectrumBlocks [i].transform.localScale;
 			scale.y = Mathf.Lerp (scale.y, spectrum [i] * 40, Time.deltaTime * 30);
 			spectrumBlocks [i].transform.localScale = scale;
-		}
+		}*/
 	}
 }

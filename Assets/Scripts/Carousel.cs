@@ -56,7 +56,7 @@ public class Carousel : MonoBehaviour {
 		for (int i = 0; i < carouselObjects.Length; i++) {
 			carouselObjects[i].transform.rotation = Quaternion.LookRotation(Vector3.back);
 			carouselObjects[i].transform.parent = this.transform;
-			carouselObjects[i].transform.position = new Vector3 (this.transform.position.x, this.transform.position.y, this.transform.position.z + distanceFromCenter); 
+			carouselObjects[i].transform.position = new Vector3 (this.transform.position.x, carouselObjects[i].transform.position.y, this.transform.position.z + distanceFromCenter); 
 			carouselObjects[i].transform.RotateAround (this.transform.position, new Vector3 (0, 1, 0), angle * (i - ((float)carouselObjects.Length - 1) / 2) + angleOffset);
 		}
 	}
