@@ -17,7 +17,12 @@ public class Panel : MonoBehaviour {
 	public GameObject pointerPrefab;
 
 	private GameObject pointer;
+	private GameObject title;
 
+	private float currentOpacity;
+	private float destOpacity;
+	private bool amFading = false;
+	private float startFade;
 	// Use this for initialization
 	void Awake() {
 
@@ -25,6 +30,7 @@ public class Panel : MonoBehaviour {
 
 	void Start() {
 		pointer = (GameObject)GameObject.Instantiate (pointerPrefab, new Vector3(0f, 0f, 0f), Quaternion.identity);
+		title = (GameObject)GetComponent<Transform> ().GetChild (0).gameObject;
 		pointer.transform.parent = this.gameObject.transform;
 		pointer.transform.localPosition = new Vector3 (0f, 0.8f, 0f);
 		pointer.transform.localEulerAngles = new Vector3 (0f, 0f, 180f);
@@ -47,6 +53,7 @@ public class Panel : MonoBehaviour {
 		if (string.IsNullOrEmpty(www.error)) {
 			renderer.material.mainTexture = www.texture;
 		}
+		FadeIn ();
 	}
 
 	public void LerpToY(float newY) {
@@ -56,6 +63,19 @@ public class Panel : MonoBehaviour {
 		startTime = Time.time;
 	}
 
+	public void FadeIn() {
+		amFading = true;
+		currentOpacity = 0;
+		destOpacity = 1;
+		startFade = Time.time;
+	}
+
+	public void FadeOut() {
+		amFading = true;
+		currentOpacity = 1;
+		destOpacity = 0;
+		startFade = Time.time;
+	}
 	// Update is called once per frame
 	void Update () {
 		if (amLerping) {
@@ -68,6 +88,28 @@ public class Panel : MonoBehaviour {
 				amLerping = false;
 			}
 		}
+		if (amFading) {
+			float time = (Time.time - startFade) / lerpSpeed;
+			float range = animation.Evaluate (time);
+			float val = currentOpacity + (destOpacity - currentOpacity) * range;
+			Material material = GetComponent<Renderer>().material;
+			Color color = material.color;
+			material.color = new Color (color.r, color.g, color.b, val);
+			if ((Time.time - startFade) > lerpSpeed) {
+				amFading = false;
+			}
+		}
+	}
+
+	public void showTitle() {
+		title.SetActive (true);
+		pointer.GetComponent<Transform> ().localPosition = new Vector3 (0, 1.1f, 0);
+
+	}
+
+	public void hideTitle() {
+		title.SetActive (false);
+		pointer.GetComponent<Transform> ().localPosition = new Vector3 (0, 0.8f, 0);
 	}
 
 	public void showPointer() {
