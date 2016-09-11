@@ -80,7 +80,6 @@ public class ControllerMainManager : MonoBehaviour {
 				theirs.position = new Vector3 (theirs.position.x, newHeight, theirs.position.z);
 			}
 			previousOrientation = GvrController.Orientation.eulerAngles;
-
 		} else {
 			carousel.GetComponent<Carousel> ().angleOffset -= drift * Time.deltaTime;
 			drift = drift * (1 - friction);
@@ -102,8 +101,11 @@ public class ControllerMainManager : MonoBehaviour {
 				StartDragging();
 				if (selectedObject != null) {
 					selectedObject.GetComponent<Panel> ().amLerping = false;
-					//StartCoroutine(StreamAudio(selectedObject, "http://localhost:1337/static/test1.ogg"));
 				}
+			}
+			if (GvrController.ClickButtonDown && selectedObject != null) {
+				selectedObject.GetComponent<Panel> ().showPointer ();
+				StartCoroutine(StreamAudio(selectedObject, selectedObject.GetComponent<Panel>().stream + "?client_id=c83cb321de3b21b1ca4435fb5913a3c2&format=json"));
 			}
 		}
 	}
@@ -113,11 +115,12 @@ public class ControllerMainManager : MonoBehaviour {
 		yield return www;
 		if (string.IsNullOrEmpty (www.error)) {
 			GvrAudioSource gvrAudio = obj.GetComponent<GvrAudioSource> ();
-			//gvrAudio.clip = www.GetAudioClip (true, true, AudioType.MPEG);
-			gvrAudio.clip = www.audioClip;
+			gvrAudio.clip = www.GetAudioClip (true, true, AudioType.MPEG);
+			carousel.GetComponent<Carousel>().stopSongs ();
 			gvrAudio.Play ();
 		} else {
 			Debug.LogError ("Could not fetch clip");
+			Debug.LogError (www.error);
 		}
 	}
 

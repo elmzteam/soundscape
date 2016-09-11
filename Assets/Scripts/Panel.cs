@@ -4,6 +4,7 @@ using System.Collections;
 public class Panel : MonoBehaviour {
 
 	public string URL;
+
 	public float lerpSpeed;
 	public AnimationCurve animation;
 	public bool amLerping = false;
@@ -11,9 +12,24 @@ public class Panel : MonoBehaviour {
 	private float dest;
 	private float startTime;
 	private float startLoc;
+
+	public string stream = "not_initialized";
+	public GameObject pointerPrefab;
+
+	private GameObject pointer;
+
 	// Use this for initialization
 	void Awake() {
 
+	}
+
+	void Start() {
+		pointer = (GameObject)GameObject.Instantiate (pointerPrefab, new Vector3(0f, 0f, 0f), Quaternion.identity);
+		pointer.transform.parent = this.gameObject.transform;
+		pointer.transform.localPosition = new Vector3 (0f, 0.8f, 0f);
+		pointer.transform.localEulerAngles = new Vector3 (0f, 0f, 180f);
+		pointer.transform.localScale = new Vector3 (0.2f, 0.2f, 6f);
+		pointer.GetComponent<Renderer> ().enabled = false;
 	}
 
 	public void Load() {
@@ -25,7 +41,6 @@ public class Panel : MonoBehaviour {
 
 	IEnumerator FetchImage() {
 		GetComponent<Renderer>().material.mainTexture = new Texture2D(4, 4, TextureFormat.DXT1, false);
-		Debug.Log (URL);
 		WWW www = new WWW(URL);
 		yield return www;
 		Renderer renderer = GetComponent<Renderer> ();
@@ -53,5 +68,13 @@ public class Panel : MonoBehaviour {
 				amLerping = false;
 			}
 		}
+	}
+
+	public void showPointer() {
+		pointer.GetComponent<Renderer> ().enabled = true;
+	}
+
+	public void hidePointer() {
+		pointer.GetComponent<Renderer> ().enabled = false;
 	}
 }

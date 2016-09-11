@@ -37,11 +37,21 @@ public class Carousel : MonoBehaviour {
 		for (int i = 0; i < data.data.Length; i++) {
 			GameObject panel = Instantiate (panelPrefab);
 			panel.GetComponent<Panel> ().URL = data.data [i].artwork_url;
+			panel.GetComponent<Panel> ().stream = data.data [i].stream_url;
 			panel.GetComponent<Panel> ().Load ();
 			panel.GetComponent<Transform> ().parent = GetComponent<Transform> ();
 			carouselObjects [i] = panel;
 		}
 		unlocked = true;
+	}
+
+	public void stopSongs() {
+		for (int i = 0; i < carouselObjects.Length; i++) {
+			if (carouselObjects [i].GetComponent<GvrAudioSource> ().isPlaying) {
+				carouselObjects [i].GetComponent<GvrAudioSource> ().Stop ();
+				carouselObjects [i].GetComponent<Panel> ().hidePointer ();
+			}
+		}
 	}
 
 	void Update () 
