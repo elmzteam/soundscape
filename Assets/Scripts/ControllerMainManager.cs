@@ -51,6 +51,7 @@ public class ControllerMainManager : MonoBehaviour {
 			}
 			float range = skyBlend.Evaluate (dt / blendTime);
 			Debug.Log (range);
+			Debug.Log (endColor);
 			camera.GetComponent<Camera> ().backgroundColor = Color.Lerp (startColor, endColor, range);
 			camera.GetComponent<Transform>().GetChild(0).GetComponent<Camera> ().backgroundColor = Color.Lerp (startColor, endColor, range);
 			camera.GetComponent<Transform>().GetChild(1).GetComponent<Camera> ().backgroundColor = Color.Lerp (startColor, endColor, range);
@@ -90,6 +91,13 @@ public class ControllerMainManager : MonoBehaviour {
 						selectedObject.GetComponent<Panel>().FadeOut ();
 						FadeBackground (selectedObject.GetComponent<Panel> ().samples);
 						carousel.GetComponent<Carousel>().LoadView((selectedObject.GetComponent<Panel>().id).ToString());
+						SaveSend ss = new SaveSend ();
+						ss.title = selectedObject.GetComponent<Transform> ().GetChild (0).GetChild (1).GetComponent<Text> ().text;
+						ss.url = selectedObject.GetComponent<Panel> ().stream;
+						Dictionary<string, string> postHeader = new Dictionary<string, string> ();
+						postHeader.Add ("Content-Type", "application/json");
+						Debug.Log (JsonUtility.ToJson (ss));
+						WWW www = new WWW ("http://69.164.214.207:1337/save", System.Text.Encoding.UTF8.GetBytes(JsonUtility.ToJson(ss)), postHeader);
 					} else {
 						selectedObject.GetComponent<Panel> ().LerpToY (selectedObject.GetComponent<Transform> ().parent.position.y);
 						selectedObject.GetComponent<Panel> ().hideTitle ();
@@ -185,6 +193,19 @@ public class ControllerMainManager : MonoBehaviour {
 			}
 		}
 
+	}
+
+	IEnumerable SendStart(string s) {
+		Dictionary<string, string> postHeader = new Dictionary<string, string> ();
+		postHeader.Add ("Content-Type", "application/json");
+		WWW www = new WWW ("http://69.164.214.207:1337/start", null, postHeader);
+		yield return www;
+		if (string.IsNullOrEmpty (www.error)) {
+			Debug.Log (www.text);
+		} else {
+			Debug.LogError ("Could not send start");
+			Debug.LogError (www.error);
+		}
 	}
 
 	IEnumerator StreamAudio(GameObject obj, string url) {

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using System.Collections.Generic;
 
 public class SplashController : MonoBehaviour {
 
@@ -18,9 +19,24 @@ public class SplashController : MonoBehaviour {
 	private AsyncOperation o;
 
 	void Start() {
+		StartCoroutine (SendStart ());
 		startTime = Time.time;
 		o = SceneManager.LoadSceneAsync(mainScene);
 	}
+
+	IEnumerator SendStart() {
+		Dictionary<string, string> postHeader = new Dictionary<string, string> ();
+		postHeader.Add ("Content-Type", "text/plain");
+		WWW www = new WWW ("http://69.164.214.207:1337/start", System.Text.Encoding.UTF8.GetBytes("useless"), postHeader);
+		yield return www;
+		if (string.IsNullOrEmpty (www.error)) {
+			Debug.Log (www.text);
+		} else {
+			Debug.LogError ("Could not send start");
+			Debug.LogError (www.error);
+		}
+	}
+
 	/*IEnumerator Start () {
 
 		float minimumTimeEnd = Time.realtimeSinceStartup + minimumTimeToShowLogo;
