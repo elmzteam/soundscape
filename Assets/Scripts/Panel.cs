@@ -12,6 +12,7 @@ public class Panel : MonoBehaviour {
 
 	public string stream = "not_initialized";
 	public GameObject pointerPrefab;
+	public Color samples;
 
 	private float dest;
 	private float startTime;
@@ -53,6 +54,21 @@ public class Panel : MonoBehaviour {
 		Renderer renderer = GetComponent<Renderer> ();
 		if (string.IsNullOrEmpty(www.error)) {
 			renderer.material.mainTexture = www.texture;
+			float red = 0;
+			float blue = 0;
+			float green = 0;
+			Color[] cols = www.texture.GetPixels();
+			int count = 0;
+			for (var i = 0; i < cols.Length; i += 20) {
+				red += cols [i].r;
+				green += cols [i].g;
+				blue += cols [i].b;
+				count++;
+			}
+			red /= count;
+			green /= count;
+			blue /= count;
+			samples = new Color (red, green, blue);
 		}
 		FadeIn ();
 	}

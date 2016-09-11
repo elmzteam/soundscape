@@ -23,7 +23,7 @@ public class Carousel : MonoBehaviour {
 		if (resetCenterRotation) {
 			transform.rotation = Quaternion.identity;
 		}
-		StartCoroutine (PopulateCarousel ("246771395"));
+		StartCoroutine (SampleCarousel ());
 	}
 
 	public void LoadView(string id) {
@@ -74,8 +74,10 @@ public class Carousel : MonoBehaviour {
 		Debug.Log (www.text);
 		if (data.data.Length == 0) {
 			Debug.Log ("No data!");
+			SampleCarousel ();
+		} else {
+			DrawCarousel (data);
 		}
-		DrawCarousel (data);
 	}
 
 	IEnumerator SearchCarousel(string term) {
@@ -87,8 +89,25 @@ public class Carousel : MonoBehaviour {
 		Debug.Log (www.text);
 		if (data.data.Length == 0) {
 			Debug.Log ("No data!");
+			SampleCarousel ();
+		} else {
+			DrawCarousel (data);
 		}
-		DrawCarousel (data);
+	}
+
+	IEnumerator SampleCarousel() {
+		string url = "http://69.164.214.207:1337/sample?num=14";
+		WWW www = new WWW (url);
+		Debug.Log (url);
+		yield return www;
+		Debug.Log (www.text);
+		TrackData data = JsonUtility.FromJson<TrackData> (www.text);
+		Debug.Log (www.text);
+		if (data.data.Length == 0) {
+			Debug.Log ("No data!");
+		} else {
+			DrawCarousel (data);
+		}
 	}
 
 	public void DrawCarousel(TrackData data) {
@@ -102,9 +121,6 @@ public class Carousel : MonoBehaviour {
 			panel.GetComponent<Panel> ().Load ();
 			panel.GetComponent<Transform> ().parent = GetComponent<Transform> ();
 			panel.GetComponent<Transform> ().position = GetComponent<Transform> ().position;
-			if (i == 0) {
-				panel.transform.GetChild (0).gameObject.SetActive (true);
-			}
 			carouselObjects [i] = panel;
 		}
 		unlocked = true;
@@ -114,8 +130,8 @@ public class Carousel : MonoBehaviour {
 		for (int i = 0; i < carouselObjects.Length; i++) {
 			if (carouselObjects [i].GetComponent<GvrAudioSource> ().isPlaying) {
 				carouselObjects [i].GetComponent<GvrAudioSource> ().Stop ();
-				carouselObjects [i].GetComponent<Panel> ().hidePointer ();
 			}
+			carouselObjects [i].GetComponent<Panel> ().hidePointer ();
 		}
 	}
 

@@ -8,6 +8,7 @@ public class ControllerMainManager : MonoBehaviour {
 	public GameObject controllerPivot;
 	public GameObject messageCanvas;
 	public GameObject carousel;
+	public GameObject camera;
 	public Text messageText;
 
 	public Material cubeInactiveMaterial;
@@ -16,6 +17,8 @@ public class ControllerMainManager : MonoBehaviour {
 	public GameObject debug;
 
 	public float friction = 0.07f;
+	public AnimationCurve skyBlend;
+	public float blendTime = 1;
 
 	private Renderer controllerCursorRenderer;
 
@@ -30,13 +33,37 @@ public class ControllerMainManager : MonoBehaviour {
 	private float drift;
 
 	private bool recording;
+	private bool coloring;
+	private Color startColor;
+	private Color endColor;
+	private float startTime;
+
 
 	void Awake() {
 	}
 
 	void Update() {
+		if (coloring) {
+			float dt = Time.time - startTime;
+			if (dt > blendTime) {
+				coloring = false;
+			}
+			float range = skyBlend.Evaluate (dt / blendTime);
+			Debug.Log (range);
+			camera.GetComponent<Camera> ().backgroundColor = Color.Lerp (startColor, endColor, range);
+			camera.GetComponent<Transform>().GetChild(0).GetComponent<Camera> ().backgroundColor = Color.Lerp (startColor, endColor, range);
+			camera.GetComponent<Transform>().GetChild(1).GetComponent<Camera> ().backgroundColor = Color.Lerp (startColor, endColor, range);
+		}
+
 		UpdatePointer();
 		UpdateStatusMessage();
+	}
+
+	private void FadeBackground(Color c) {
+		startTime = Time.time;
+		coloring = true;
+		startColor = camera.GetComponent<Camera> ().backgroundColor;
+		endColor = c;
 	}
 
 	private void UpdatePointer() {
@@ -60,10 +87,14 @@ public class ControllerMainManager : MonoBehaviour {
 						downed = selectedObject;
 					} else if (selectedObject.GetComponent<Transform> ().position.y - selectedObject.GetComponent<Transform> ().parent.position.y > 4) {
 						selectedObject.GetComponent<Panel>().FadeOut ();
+						FadeBackground (selectedObject.GetComponent<Panel> ().samples);
 						carousel.GetComponent<Carousel>().LoadView((selectedObject.GetComponent<Panel>().id).ToString());
 					} else {
 						selectedObject.GetComponent<Panel> ().LerpToY (selectedObject.GetComponent<Transform> ().parent.position.y);
 						selectedObject.GetComponent<Panel> ().hideTitle ();
+						if (selectedObject == downed) {
+							downed = null;
+						}
 					}
 				}
 				EndDragging();
@@ -124,6 +155,7 @@ public class ControllerMainManager : MonoBehaviour {
 				}
 			}
 			if (GvrController.ClickButtonDown && selectedObject != null) {
+				carousel.GetComponent<Carousel>().stopSongs ();
 				selectedObject.GetComponent<Panel> ().showPointer ();
 				StartCoroutine(StreamAudio(selectedObject, selectedObject.GetComponent<Panel>().stream + "?client_id=c83cb321de3b21b1ca4435fb5913a3c2&format=json"));
 			}
@@ -158,7 +190,6 @@ public class ControllerMainManager : MonoBehaviour {
 		if (string.IsNullOrEmpty (www.error)) {
 			GvrAudioSource gvrAudio = obj.GetComponent<GvrAudioSource> ();
 			gvrAudio.clip = www.GetAudioClip (true, true, AudioType.MPEG);
-			carousel.GetComponent<Carousel>().stopSongs ();
 			gvrAudio.Play ();
 		} else {
 			Debug.LogError ("Could not fetch clip");
