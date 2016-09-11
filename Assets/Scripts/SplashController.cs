@@ -5,13 +5,23 @@ using System.Collections;
 public class SplashController : MonoBehaviour {
 
 	public float minimumTimeToShowLogo = 7f;
+	public float fadeOutTime = 1;
 	public string mainScene = "";
+	public GameObject musicController;
+	public AnimationCurve fade;
+	public GameObject mask;
 
-	public Animation animation;
 	public string introName = "SplashIn";
 	public string outroName = "SplashOut";
 
-	IEnumerator Start () {
+	private float startTime;
+	private AsyncOperation o;
+
+	void Start() {
+		startTime = Time.time;
+		o = SceneManager.LoadSceneAsync(mainScene);
+	}
+	/*IEnumerator Start () {
 
 		float minimumTimeEnd = Time.realtimeSinceStartup + minimumTimeToShowLogo;
 
@@ -41,5 +51,21 @@ public class SplashController : MonoBehaviour {
 
 		// activate scene
 		o.allowSceneActivation = true;
+	}*/
+
+	void Update() {
+		o.allowSceneActivation = false;
+		float dt = Time.time - startTime;
+		if (dt > minimumTimeToShowLogo) {
+			float diff = (dt - minimumTimeToShowLogo) / fadeOutTime;
+			if (diff > 1) {
+				Debug.Log ("hi");
+				o.allowSceneActivation = true;
+			}
+			float range = fade.Evaluate (diff);
+			musicController.GetComponent<AudioSource> ().volume = range;
+			Color c = mask.GetComponent<SpriteRenderer> ().color;
+			mask.GetComponent<SpriteRenderer> ().color = new Color(c.r, c.g, c.b, (1 - range));
+		}
 	}
 }
