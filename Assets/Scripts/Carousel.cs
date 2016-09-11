@@ -35,10 +35,6 @@ public class Carousel : MonoBehaviour {
 
 	private IEnumerator DelayedCarousel(string id) {
 		yield return new WaitForSeconds(1.1f);
-		yield return PopulateCarousel (id);
-	}
-
-	IEnumerator PopulateCarousel (string id) {
 		if (carouselObjects != null) {
 			foreach (GameObject panel in carouselObjects) {
 				Destroy (panel);
@@ -46,20 +42,61 @@ public class Carousel : MonoBehaviour {
 			carouselObjects = null;
 			unlocked = false;
 		}
+		yield return PopulateCarousel (id);
+	}
 
-		string url = "http://69.164.214.207:1337/search/"+id+"?num=14";
-		WWW www = new WWW(url);
+	/* Please don't hate me, we only have 8 hours left */
+	public void LoadViewQuery(string term) {
+		foreach (GameObject panel in carouselObjects) {
+			panel.GetComponent<Panel> ().FadeOut();
+		}
+		StartCoroutine (DelayedCarouselQuery (term));
+	}
+
+	private IEnumerator DelayedCarouselQuery(string term) {
+		yield return new WaitForSeconds(1.1f);
+		if (carouselObjects != null) {
+			foreach (GameObject panel in carouselObjects) {
+				Destroy (panel);
+			}
+			carouselObjects = null;
+			unlocked = false;
+		}
+		yield return SearchCarousel (term);
+	}
+
+	IEnumerator PopulateCarousel (string id) {
+		string url = "http://69.164.214.207:1337/search/" + id + "?num=14";
+		WWW www = new WWW (url);
 		Debug.Log (url);
 		yield return www;
-		TrackData data = JsonUtility.FromJson<TrackData>(www.text);
+		TrackData data = JsonUtility.FromJson<TrackData> (www.text);
 		Debug.Log (www.text);
 		if (data.data.Length == 0) {
 			Debug.Log ("No data!");
 		}
+		DrawCarousel (data);
+	}
+
+	IEnumerator SearchCarousel(string term) {
+		string url = "http://69.164.214.207:1337/query/" + WWW.EscapeURL(term);
+		WWW www = new WWW (url);
+		Debug.Log (url);
+		yield return www;
+		TrackData data = JsonUtility.FromJson<TrackData> (www.text);
+		Debug.Log (www.text);
+		if (data.data.Length == 0) {
+			Debug.Log ("No data!");
+		}
+		DrawCarousel (data);
+	}
+
+	public void DrawCarousel(TrackData data) {
 		carouselObjects = new GameObject [data.data.Length];
 		for (int i = 0; i < data.data.Length; i++) {
 			GameObject panel = Instantiate (panelPrefab);
 			panel.GetComponent<Panel> ().URL = data.data [i].artwork_url;
+			panel.GetComponent<Panel> ().id = data.data [i].id;
 			panel.GetComponent<Panel> ().stream = data.data [i].stream_url;
 			panel.GetComponent<Transform> ().GetChild (0).GetChild (1).GetComponent<Text> ().text = data.data [i].title;
 			panel.GetComponent<Panel> ().Load ();

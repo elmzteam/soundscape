@@ -13,6 +13,7 @@ public class ControllerMainManager : MonoBehaviour {
 	public Material cubeInactiveMaterial;
 	public Material cubeHoverMaterial;
 	public Material cubeActiveMaterial;
+	public GameObject debug;
 
 	public float friction = 0.07f;
 
@@ -59,7 +60,7 @@ public class ControllerMainManager : MonoBehaviour {
 						downed = selectedObject;
 					} else if (selectedObject.GetComponent<Transform> ().position.y - selectedObject.GetComponent<Transform> ().parent.position.y > 4) {
 						selectedObject.GetComponent<Panel>().FadeOut ();
-						carousel.GetComponent<Carousel>().LoadView("217682643");
+						carousel.GetComponent<Carousel>().LoadView((selectedObject.GetComponent<Panel>().id).ToString());
 					} else {
 						selectedObject.GetComponent<Panel> ().LerpToY (selectedObject.GetComponent<Transform> ().parent.position.y);
 						selectedObject.GetComponent<Panel> ().hideTitle ();
@@ -107,7 +108,7 @@ public class ControllerMainManager : MonoBehaviour {
 			}
 			RaycastHit hitInfo;
 			Vector3 rayDirection = GvrController.Orientation * Vector3.forward;
-			if (Physics.Raycast(Vector3.zero, rayDirection, out hitInfo)) {
+			if (Physics.Raycast(controllerPivot.GetComponent<Transform>().position, rayDirection, out hitInfo)) {
 				if (hitInfo.collider && hitInfo.collider.gameObject && hitInfo.collider.gameObject.GetComponent<Panel>()) {
 					SetSelectedObject(hitInfo.collider.gameObject);
 				}
@@ -170,15 +171,16 @@ public class ControllerMainManager : MonoBehaviour {
 		//form.AddBinaryData ("recording", File.ReadAllBytes(Path.Combine(Application.persistentDataPath, filename)));
 		Dictionary<string, string> postHeader = new Dictionary<string, string> ();
 		postHeader.Add ("Content-Type", "audio/wav");
-		postHeader.Add ("Transfer-Encoding", "chunked");
+		//postHeader.Add ("Transfer-Encoding", "chunked");
 		postHeader.Add("Authorization", "Basic " + System.Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes("bb27f84b-d711-44ec-bb6e-b03e78afa819:UzCgO5m02JLL")));
 		WWW www = new WWW ("https://stream.watsonplatform.net/speech-to-text/api/v1/recognize?continuous=true", File.ReadAllBytes(Path.Combine(Application.persistentDataPath, filename)), postHeader);
 		yield return www;
 		Debug.Log ("Returned from Speech to Text");
 		if (string.IsNullOrEmpty (www.error)) {
-			Debug.Log (www.text);
+			debug.GetComponent<Text> ().text = www.text;
 			SpeechTextData data = JsonUtility.FromJson<SpeechTextData>(www.text);
 			Debug.Log (data.results[0].alternatives [0].transcript);
+			carousel.GetComponent<Carousel> ().LoadViewQuery (data.results [0].alternatives [0].transcript);
 		} else {
 			Debug.LogError ("Could not speech to text");
 			Debug.LogError (www.error);

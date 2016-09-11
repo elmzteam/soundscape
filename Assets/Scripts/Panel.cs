@@ -8,13 +8,14 @@ public class Panel : MonoBehaviour {
 	public float lerpSpeed;
 	public AnimationCurve animation;
 	public bool amLerping = false;
+	public int id;
+
+	public string stream = "not_initialized";
+	public GameObject pointerPrefab;
 
 	private float dest;
 	private float startTime;
 	private float startLoc;
-
-	public string stream = "not_initialized";
-	public GameObject pointerPrefab;
 
 	private GameObject pointer;
 	private GameObject title;
