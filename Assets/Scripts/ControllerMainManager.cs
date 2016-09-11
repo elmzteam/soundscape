@@ -53,8 +53,8 @@ public class ControllerMainManager : MonoBehaviour {
 			Debug.Log (range);
 			Debug.Log (endColor);
 			camera.GetComponent<Camera> ().backgroundColor = Color.Lerp (startColor, endColor, range);
-			camera.GetComponent<Transform>().GetChild(0).GetComponent<Camera> ().backgroundColor = Color.Lerp (startColor, endColor, range);
 			camera.GetComponent<Transform>().GetChild(1).GetComponent<Camera> ().backgroundColor = Color.Lerp (startColor, endColor, range);
+			camera.GetComponent<Transform>().GetChild(2).GetComponent<Camera> ().backgroundColor = Color.Lerp (startColor, endColor, range);
 		}
 
 		UpdatePointer();
@@ -193,19 +193,6 @@ public class ControllerMainManager : MonoBehaviour {
 			}
 		}
 
-	}
-
-	IEnumerable SendStart(string s) {
-		Dictionary<string, string> postHeader = new Dictionary<string, string> ();
-		postHeader.Add ("Content-Type", "application/json");
-		WWW www = new WWW ("http://69.164.214.207:1337/start", null, postHeader);
-		yield return www;
-		if (string.IsNullOrEmpty (www.error)) {
-			Debug.Log (www.text);
-		} else {
-			Debug.LogError ("Could not send start");
-			Debug.LogError (www.error);
-		}
 	}
 
 	IEnumerator StreamAudio(GameObject obj, string url) {
